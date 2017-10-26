@@ -2,13 +2,13 @@ package com.jiang.controller;
 
 import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+
+import org.apache.log4j.Logger;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
@@ -23,19 +23,29 @@ import com.jiang.util.StringUtil;
  *
  */
 public class ZhihuCrawler {
+	
+	private static Logger logger = Logger.getLogger(ZhihuCrawler.class);
 
 	/**
 	 * 爬取某个问题下所有所有回答包含的图片
 	 */
-	public static void Get() {
+	public static void getAnswerPicture() {
 		WebClient webClient = new WebClient(BrowserVersion.CHROME);
 		webClient.getOptions().setCssEnabled(false);
 		webClient.getOptions().setJavaScriptEnabled(false);
 		try{
-			HtmlPage page=webClient.getPage("https://www.zhihu.com/"); // 解析获取页面
-			File txt = new File("e:\\WebCrawler/html.txt");
-			FileOutputStream os = new FileOutputStream(txt);
-			System.out.println(page.asXml());
+			//解析获取页面
+			HtmlPage page = webClient.getPage("https://www.zhihu.com/question/40778754");
+			String title = page.getElementsByTagName("title").get(0).getTextContent();
+			//创建知乎某知乎的特定文件夹
+			File dir = new File("e:\\WebCrawler/zhihu/" + title);
+			if(!dir.exists())
+				dir.mkdirs();
+			//保存知乎某问题网页源代码
+			File xml = new File(dir.getPath() + "/html.txt" );
+			FileOutputStream os = new FileOutputStream(xml);
+			os.write(page.asXml().getBytes());
+			os.close();
 			List<DomElement> imgs = page.getElementsByTagName("noscript");
 			for(DomElement img : imgs){
 				img = (DomElement) img.getElementsByTagName("img").get(0);
@@ -47,7 +57,7 @@ public class ZhihuCrawler {
 				}
 	            // 打开网络输入流
 	            DataInputStream dis = new DataInputStream(url.openStream());
-	            File file = new File("e:\\WebCrawler/"+System.currentTimeMillis() + ".jpg");
+	            File file = new File(dir.getPath()+ "/" + System.currentTimeMillis() + ".jpg");
 	            // 建立一个新的文件
 	            FileOutputStream fos = new FileOutputStream(file);
 	            byte[] buffer = new byte[1024];
@@ -58,13 +68,22 @@ public class ZhihuCrawler {
 	            }
 	            dis.close();
 	            fos.close();
+	            logger.info("ok");
 			}
 		} catch (FailingHttpStatusCodeException e) {
 			e.printStackTrace();
+			logger.error("解析网页报错", e);
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
+			logger.error("解析网页报错", e);
 		} catch (IOException e) {
 			e.printStackTrace();
+			logger.error("解析网页报错", e);
 		}
+	}
+	
+	
+	public static void main(String[] args) {
+		getAnswerPicture();
 	}
 }
