@@ -3,7 +3,7 @@
 
 '''
 参考：https://zhuanlan.zhihu.com/p/20423182
-2020.1
+2020.1完结
 '''
 
 import codecs
